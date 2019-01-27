@@ -57,37 +57,52 @@ const randomIntFromRange = (min, max) => {
     return Math.floor(Math.random() * (max - min)) + min;
 };
 
-function Cell(speed, radius, x, y, dx, dy, age, lifeSpan) {
+const getDistance = (x1, y1, x2, y2) => {
+    const xDistance = x2 - x1;
+    const yDistance = y2 - y1;
+    const directDistance = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
+    return directDistance;
+};
+
+// Class declarations
+function Cell(index, speed, radius, x, y, dx, dy, age, lifeSpan) {
+    this.index = index;
+    this.speed = speed;
+    this.radius = radius;
     this.x = x;
     this.y = y;
-    
+    this.dx = dx;
+    this.dy = dy;
+    this.age = age;
+    this.lifeSpan = lifeSpan;
+
     this.draw = () => {
         c.beginPath();
-        c.arc(this.x, this.y, radius, 0, 2 * Math.PI);
+        c.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
         c.fillStyle = 'rgb(100, 140, 100)';
         c.fill();
     };
 
     this.update = () => {
+        let mutation = (Math.random() - 0.5) * this.speed;
         // Check age
-        if (age < lifeSpan) {
+        if (this.age < this.lifeSpan) {
              // Bounce off walls
-            if (this.x + radius > width || this.x - radius < 0) {
-                let mutation = (Math.random() - 0.5) * speed;
-                dx = -dx;
-                dy = mutation;
+            if (this.x + this.radius > width || this.x - this.radius < 0) {
+                this.dx = -this.dx;
+                this.dy = mutation;
             }
+        
 
             // Bounce off ceiling and floor
-            if (this.y + radius > height || this.y - radius < 0) {
-                let mutation = (Math.random() - 0.5) * speed;
-                dy = -dy;
-                dx = mutation;
+            if (this.y + this.radius > height || this.y - this.radius < 0) {
+                this.dy = -this.dy;
+                this.dx = mutation;
             }
 
-            this.x+= dx;
-            this.y+= dy;
-            age++;
+            this.x+= this.dx;
+            this.y+= this.dy;
+            this.age++;
             this.draw();
         }
     }
@@ -95,14 +110,17 @@ function Cell(speed, radius, x, y, dx, dy, age, lifeSpan) {
 };
 
 // Implementation
+let numCells = 100;
 let allCells = [];
 const init = () => {
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < numCells; i++) {
+        let index = i;
         // Generates age and lifespan
         let age = 0;
         let lifeSpan = randomIntFromRange(800, 1000);
-    
-        let radius = randomIntFromRange(5, 15);
+        
+        // Generates radius and position
+        let radius = randomIntFromRange(5, 10);
         let x = randomIntFromRange(radius * 2, width - (radius * 2));
         let y = randomIntFromRange(radius * 2, height - (radius * 2));
     
@@ -111,7 +129,7 @@ const init = () => {
         let speed = .5;
         let dx = (Math.random() - 0.5) * speed;
         let dy = (Math.random() - 0.5) * speed;
-        let cell = new Cell(speed, radius, x, y, dx, dy, age, lifeSpan);
+        let cell = new Cell(index, speed, radius, x, y, dx, dy, age, lifeSpan);
         allCells.push(cell);
     }    
 };
@@ -121,9 +139,18 @@ const animate = () => {
     requestAnimationFrame(animate);
     c.clearRect(0, 0, width, height);
 
-    allCells.forEach(cell => {
-        // cell.x = mouse.x;
-        // cell.y = mouse.y;
+
+    allCells.forEach(cell=> {
+        const otherCells = allCells.filter(otherCell => otherCell.index != cell.index);
+        const mutation = (Math.random() - 0.5) * cell.speed;
+        otherCells.forEach(otherCell => {
+            let distance = getDistance(cell.x, cell.y, otherCell.x, otherCell.y);
+            if (distance < cell.radius + otherCell.radius) {
+                cell.dx = -cell.dx;
+                otherCell.dy = -otherCell.dy
+            }
+        });
+
         cell.update();
     });
 }
