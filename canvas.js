@@ -75,6 +75,8 @@ function Cell(index, speed, radius, x, y, dx, dy, age, lifeSpan) {
     this.dy = dy;
     this.age = age;
     this.lifeSpan = lifeSpan;
+    this.running = false;
+    this.chasing = false;
 
     this.draw = () => {
         c.beginPath();
@@ -91,6 +93,8 @@ function Cell(index, speed, radius, x, y, dx, dy, age, lifeSpan) {
             if (this.x + this.radius > width || this.x - this.radius < 0) {
                 this.dx = -this.dx;
                 this.dy = mutation;
+                this.running = false;
+                this.chasing = false;
             }
         
 
@@ -98,6 +102,8 @@ function Cell(index, speed, radius, x, y, dx, dy, age, lifeSpan) {
             if (this.y + this.radius > height || this.y - this.radius < 0) {
                 this.dy = -this.dy;
                 this.dx = mutation;
+                this.running = false;
+                this.chasing = false;
             }
 
             this.x+= this.dx;
@@ -110,23 +116,23 @@ function Cell(index, speed, radius, x, y, dx, dy, age, lifeSpan) {
 };
 
 // Implementation
-let numCells = 100;
+let numCells = 8;
 let allCells = [];
 const init = () => {
     for (let i = 0; i < numCells; i++) {
         let index = i;
         // Generates age and lifespan
         let age = 0;
-        let lifeSpan = randomIntFromRange(800, 1000);
+        let lifeSpan = randomIntFromRange(800, 2000);
         
         // Generates radius and position
-        let radius = randomIntFromRange(5, 10);
+        let radius = randomIntFromRange(10, 40);
         let x = randomIntFromRange(radius * 2, width - (radius * 2));
         let y = randomIntFromRange(radius * 2, height - (radius * 2));
     
         // Generates velocity between -(speed / 2) and +(speed / 2)
         // i.e. if speed was 4, the velocity would be somewhere betwen -2 and 2
-        let speed = .5;
+        let speed = randomIntFromRange(.5, 4);
         let dx = (Math.random() - 0.5) * speed;
         let dy = (Math.random() - 0.5) * speed;
         let cell = new Cell(index, speed, radius, x, y, dx, dy, age, lifeSpan);
@@ -142,12 +148,21 @@ const animate = () => {
 
     allCells.forEach(cell=> {
         const otherCells = allCells.filter(otherCell => otherCell.index != cell.index);
-        const mutation = (Math.random() - 0.5) * cell.speed;
         otherCells.forEach(otherCell => {
             let distance = getDistance(cell.x, cell.y, otherCell.x, otherCell.y);
-            if (distance < cell.radius + otherCell.radius) {
-                cell.dx = -cell.dx;
-                otherCell.dy = -otherCell.dy
+            // Checks for collision
+            if (distance < cell.radius + otherCell.radius + 10) {
+                if (!cell.running && !cell.chasing) {
+                    if (cell.radius < otherCell.radius) {
+                        cell.running = true;
+                        cell.dx = -cell.dx;
+                        cell.dy = -cell.dy;
+                    } else {
+                        cell.chasing = true;
+                        cell.dx = -otherCell.dx;
+                        cell.dy = -otherCell.dy;
+                    }
+                }
             }
         });
 
