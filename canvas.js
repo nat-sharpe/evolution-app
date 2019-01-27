@@ -38,28 +38,38 @@ let c = canvas.getContext('2d');
 //     c.stroke();
 // }
 
-let x = 20;
 let direction = 'right';
+let hit = 0;
+let speed = 4 + hit;
+let radius = 20;
+let x = radius;
 
 const animate = () => {
     requestAnimationFrame(animate);
     c.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
     c.beginPath();
-    c.arc(x, 200, 20, 0, 2 * Math.PI);
+    c.arc(x, 200, radius, 0, 2 * Math.PI);
     c.stroke();
 
+    console.log(speed)
 
-    if (x === 20) {
+    if (x === radius || x < 20) {
         direction = 'right';
-    } else if (x === window.innerWidth - 20) {
+        hit++;
+        speed = 4 + hit;
+        radius = 20 + (hit * 3);
+    } else if (x === window.innerWidth - radius || x > window.innerWidth - radius) {
         direction = 'left';
+        hit++;
+        speed = 4 + hit;
+        radius = 20 + (hit * 3);
     }
 
     if (direction === 'right') {
-        x += 5;
+        x += speed;
     } else {
-        x -= 5;
+        x -= speed;
     }
 }
 
