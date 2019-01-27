@@ -77,6 +77,7 @@ function Cell(index, speed, radius, x, y, dx, dy, age, lifeSpan) {
     this.lifeSpan = lifeSpan;
     this.running = false;
     this.chasing = false;
+    this.alive = true;
 
     this.draw = () => {
         c.beginPath();
@@ -87,8 +88,11 @@ function Cell(index, speed, radius, x, y, dx, dy, age, lifeSpan) {
 
     this.update = () => {
         let mutation = (Math.random() - 0.5) * this.speed;
+        if (this.age === this.lifeSpan) {
+            this.alive = false;
+        }
         // Check age
-        if (this.age < this.lifeSpan) {
+        if (this.alive) {
              // Bounce off walls
             if (this.x + this.radius > width || this.x - this.radius < 0) {
                 this.dx = -this.dx;
@@ -151,6 +155,13 @@ const animate = () => {
         otherCells.forEach(otherCell => {
             let distance = getDistance(cell.x, cell.y, otherCell.x, otherCell.y);
             // Checks for collision
+            if (distance < cell.radius + otherCell.radius) {
+                if (cell.alive && cell.radius < otherCell.radius) {
+                    cell.alive = false;
+                    otherCell.radius+= 10;
+                }
+            }
+            // Checks for proximity
             if (distance < cell.radius + otherCell.radius + 10) {
                 if (!cell.running && !cell.chasing) {
                     if (cell.radius < otherCell.radius) {
