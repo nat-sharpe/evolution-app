@@ -10,6 +10,18 @@ canvas.height = height;
 // Creates a context 'super object' class
 let c = canvas.getContext('2d');
 
+// Sets mouse 
+let mouse = {
+    x: width / 2,
+    y: height / 2
+};
+
+// Event Listeners
+addEventListener("mousemove", () => {
+    mouse.x = event.clientX;
+    mouse.y = event.clientY;
+})
+
 // // Sets coordinates and dimensions of c: (x, y, width, height)
 // // Coordinates are measured from top-left corner of screen (0, 0)
 // c.fillStyle = 'rgba(255, 0, 0, 0.2)';
@@ -40,12 +52,18 @@ let c = canvas.getContext('2d');
 //     c.stroke();
 // }
 
+// Utility Functions 
+const randomIntFromRange = (min, max) => {
+    return Math.floor(Math.random() * (max - min)) + min;
+};
 
 function Cell(speed, radius, x, y, dx, dy, age, lifeSpan) {
+    this.x = x;
+    this.y = y;
     
     this.draw = () => {
         c.beginPath();
-        c.arc(x, y, radius, 0, 2 * Math.PI);
+        c.arc(this.x, this.y, radius, 0, 2 * Math.PI);
         c.fillStyle = 'rgb(100, 140, 100)';
         c.fill();
     };
@@ -54,57 +72,61 @@ function Cell(speed, radius, x, y, dx, dy, age, lifeSpan) {
         // Check age
         if (age < lifeSpan) {
              // Bounce off walls
-            if (x + radius > width || x - radius < 0) {
+            if (this.x + radius > width || this.x - radius < 0) {
                 let mutation = (Math.random() - 0.5) * speed;
                 dx = -dx;
                 dy = mutation;
             }
 
             // Bounce off ceiling and floor
-            if (y + radius > height || y - radius < 0) {
+            if (this.y + radius > height || this.y - radius < 0) {
                 let mutation = (Math.random() - 0.5) * speed;
                 dy = -dy;
                 dx = mutation;
             }
 
-            x+= dx;
-            y+= dy;
+            this.x+= dx;
+            this.y+= dy;
             age++;
             this.draw();
         }
-        // console.log(`x: ${x}   y: ${y}`)
     }
 
 };
 
+// Implementation
 let allCells = [];
+const init = () => {
+    for (let i = 0; i < 10; i++) {
+        // Generates age and lifespan
+        let age = 0;
+        let lifeSpan = randomIntFromRange(800, 1000);
+    
+        let radius = randomIntFromRange(5, 15);
+        let x = randomIntFromRange(radius * 2, width - (radius * 2));
+        let y = randomIntFromRange(radius * 2, height - (radius * 2));
+    
+        // Generates velocity between -(speed / 2) and +(speed / 2)
+        // i.e. if speed was 4, the velocity would be somewhere betwen -2 and 2
+        let speed = .5;
+        let dx = (Math.random() - 0.5) * speed;
+        let dy = (Math.random() - 0.5) * speed;
+        let cell = new Cell(speed, radius, x, y, dx, dy, age, lifeSpan);
+        allCells.push(cell);
+    }    
+};
 
-for (let i = 0; i < 100; i++) {
-    let age = 0;
-    let lifeSpan = Math.floor(Math.random() * 1000) + 200;;
-    let midSize = 10;
-    let sizeRange = 5;
-    // Generates number between midSize - sizeRange and midSize + sizeRange;
-    let radius = Math.floor(Math.random() * midSize) + sizeRange;
-    let x = Math.floor(Math.random() * (width - (radius * 2))) + radius;
-    let y = Math.floor(Math.random() * (height - (radius * 2))) + radius;
-
-    // Generates velocity between -(speed / 2) and +(speed / 2)
-    // i.e. if speed was 4, the velocity would be somewhere betwen -2 and 2
-    let speed = .5;
-    let dx = (Math.random() - 0.5) * speed;
-    let dy = (Math.random() - 0.5) * speed;
-    let cell = new Cell(speed, radius, x, y, dx, dy, age, lifeSpan);
-    allCells.push(cell);
-}
-
+// Animation loop
 const animate = () => {
     requestAnimationFrame(animate);
     c.clearRect(0, 0, width, height);
 
     allCells.forEach(cell => {
+        // cell.x = mouse.x;
+        // cell.y = mouse.y;
         cell.update();
     });
 }
 
+init();
 animate();
