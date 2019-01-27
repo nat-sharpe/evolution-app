@@ -40,44 +40,62 @@ let c = canvas.getContext('2d');
 //     c.stroke();
 // }
 
-let speed = 3;
-let radius = 20;
-let x = Math.floor(Math.random() * (width - (radius * 2))) + radius;
-let y = Math.floor(Math.random() * (height - (radius * 2))) + radius;
-let dx = (Math.random() - 0.5) * speed;
-let dy = (Math.random() - 0.5) * speed;
-let hit = 0;
+
+function Cell(speed, radius, x, y, dx, dy) {
+    
+    this.draw = () => {
+        c.beginPath();
+        c.arc(x, y, radius, 0, 2 * Math.PI);
+        c.stroke();
+    };
+
+    this.update = () => {
+        // Bounce off walls
+        if (x + radius > width || x - radius < 0) {
+            let mutation = (Math.random() - 0.5) * speed;
+            dx = -dx;
+            dy = mutation;
+        }
+
+        // Bounce off ceiling and floor
+        if (y + radius > height || y - radius < 0) {
+            let mutation = (Math.random() - 0.5) * speed;
+            dy = -dy;
+            dx = mutation;
+        }
+
+        x+= dx;
+        y+= dy;
+        // console.log(`x: ${x}   y: ${y}`)
+    }
+
+};
+
+let allCells = [];
+
+for (let i = 0; i < 10; i++) {
+    let speed = 1;
+    // Generates number between 10 and 30;
+    let radius = Math.floor(Math.random() * 20) + 10;
+    let x = Math.floor(Math.random() * (width - (radius * 2))) + radius;
+    let y = Math.floor(Math.random() * (height - (radius * 2))) + radius;
+
+    // Generates velocity between -(speed / 2) and +(speed / 2)
+    // i.e. if speed was 4, the velocity would be somewhere betwen -2 and 2
+    let dx = (Math.random() - 0.5) * speed;
+    let dy = (Math.random() - 0.5) * speed;
+    let cell = new Cell(speed, radius, x, y, dx, dy);
+    allCells.push(cell);
+}
 
 const animate = () => {
     requestAnimationFrame(animate);
     c.clearRect(0, 0, width, height);
 
-    c.beginPath();
-    c.arc(x, y, radius, 0, 2 * Math.PI);
-    c.stroke();
-
-    // Bounce off walls
-    if (x + radius > width || x - radius < 0) {
-        let mutation = Math.floor(Math.random() * speed);
-        dx = -dx;
-        dy = mutation;
-    }
-
-    // Bounce off ceiling and floor
-    if (y + radius > height || y - radius < 0) {
-        let mutation = Math.floor(Math.random() * speed);
-        dy = -dy;
-        dx = mutation;
-    }
-
-    x+= dx;
-    y+= dy;
-    console.log(`x: ${x}   y: ${y}`)
-    console.log((dy))
-    console.log(dx)
-
-
-
+    allCells.forEach(cell => {
+        cell.update();
+        cell.draw(); 
+    });
 }
 
 animate();
