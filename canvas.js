@@ -46,7 +46,8 @@ function Cell(speed, radius, x, y, dx, dy) {
     this.draw = () => {
         c.beginPath();
         c.arc(x, y, radius, 0, 2 * Math.PI);
-        c.stroke();
+        c.fillStyle = 'rgb(100, 140, 100)';
+        c.fill();
     };
 
     this.update = () => {
@@ -73,15 +74,17 @@ function Cell(speed, radius, x, y, dx, dy) {
 
 let allCells = [];
 
-for (let i = 0; i < 10; i++) {
-    let speed = 1;
-    // Generates number between 10 and 30;
-    let radius = Math.floor(Math.random() * 20) + 10;
+for (let i = 0; i < 100; i++) {
+    let midSize = 10;
+    let sizeRange = 5;
+    // Generates number between midSize - sizeRange and midSize + sizeRange;
+    let radius = Math.floor(Math.random() * midSize) + sizeRange;
     let x = Math.floor(Math.random() * (width - (radius * 2))) + radius;
     let y = Math.floor(Math.random() * (height - (radius * 2))) + radius;
 
     // Generates velocity between -(speed / 2) and +(speed / 2)
     // i.e. if speed was 4, the velocity would be somewhere betwen -2 and 2
+    let speed = 3;
     let dx = (Math.random() - 0.5) * speed;
     let dy = (Math.random() - 0.5) * speed;
     let cell = new Cell(speed, radius, x, y, dx, dy);
