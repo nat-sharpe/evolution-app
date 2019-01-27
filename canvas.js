@@ -2,8 +2,10 @@
 let canvas = document.querySelector('canvas');
 
 // Sets canvas dimensions
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+const width = window.innerWidth - 4;
+const height = window.innerHeight - 4;
+canvas.width = width;
+canvas.height = height;
 
 // Creates a context 'super object' class
 let c = canvas.getContext('2d');
@@ -38,39 +40,44 @@ let c = canvas.getContext('2d');
 //     c.stroke();
 // }
 
-let direction = 'right';
-let hit = 0;
-let speed = 4 + hit;
+let speed = 3;
 let radius = 20;
-let x = radius;
+let x = Math.floor(Math.random() * (width - (radius * 2))) + radius;
+let y = Math.floor(Math.random() * (height - (radius * 2))) + radius;
+let dx = (Math.random() - 0.5) * speed;
+let dy = (Math.random() - 0.5) * speed;
+let hit = 0;
 
 const animate = () => {
     requestAnimationFrame(animate);
-    c.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    c.clearRect(0, 0, width, height);
 
     c.beginPath();
-    c.arc(x, 200, radius, 0, 2 * Math.PI);
+    c.arc(x, y, radius, 0, 2 * Math.PI);
     c.stroke();
 
-    console.log(speed)
-
-    if (x === radius || x < 20) {
-        direction = 'right';
-        hit++;
-        speed = 4 + hit;
-        radius = 20 + (hit * 3);
-    } else if (x === window.innerWidth - radius || x > window.innerWidth - radius) {
-        direction = 'left';
-        hit++;
-        speed = 4 + hit;
-        radius = 20 + (hit * 3);
+    // Bounce off walls
+    if (x + radius > width || x - radius < 0) {
+        let mutation = Math.floor(Math.random() * speed);
+        dx = -dx;
+        dy = mutation;
     }
 
-    if (direction === 'right') {
-        x += speed;
-    } else {
-        x -= speed;
+    // Bounce off ceiling and floor
+    if (y + radius > height || y - radius < 0) {
+        let mutation = Math.floor(Math.random() * speed);
+        dy = -dy;
+        dx = mutation;
     }
+
+    x+= dx;
+    y+= dy;
+    console.log(`x: ${x}   y: ${y}`)
+    console.log((dy))
+    console.log(dx)
+
+
+
 }
 
 animate();
