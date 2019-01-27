@@ -64,8 +64,10 @@ const getDistance = (x1, y1, x2, y2) => {
     return directDistance;
 };
 
+const randomColors = ['rgb(100, 140, 100)', 'rgb(140, 100, 100)', 'rgb(100, 100, 140)' ]
+
 // Class declarations
-function Cell(index, speed, radius, x, y, dx, dy, age, lifeSpan) {
+function Cell(index, speed, radius, x, y, dx, dy, age, color, lifeSpan) {
     this.index = index;
     this.speed = speed;
     this.radius = radius;
@@ -74,6 +76,7 @@ function Cell(index, speed, radius, x, y, dx, dy, age, lifeSpan) {
     this.dx = dx;
     this.dy = dy;
     this.age = age;
+    this.color = color;
     this.lifeSpan = lifeSpan;
     this.running = false;
     this.chasing = false;
@@ -82,7 +85,7 @@ function Cell(index, speed, radius, x, y, dx, dy, age, lifeSpan) {
     this.draw = () => {
         c.beginPath();
         c.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-        c.fillStyle = 'rgb(100, 140, 100)';
+        c.fillStyle = this.color;
         c.fill();
     };
 
@@ -120,26 +123,26 @@ function Cell(index, speed, radius, x, y, dx, dy, age, lifeSpan) {
 };
 
 // Implementation
-let numCells = 8;
+let numCells = 200;
 let allCells = [];
 const init = () => {
     for (let i = 0; i < numCells; i++) {
         let index = i;
         // Generates age and lifespan
         let age = 0;
-        let lifeSpan = randomIntFromRange(800, 2000);
-        
+        let lifeSpan = randomIntFromRange(800, 8000);
+        let color = randomColors[randomIntFromRange(0, randomColors.length)];
         // Generates radius and position
-        let radius = randomIntFromRange(10, 40);
+        let radius = randomIntFromRange(3, 5);
         let x = randomIntFromRange(radius * 2, width - (radius * 2));
         let y = randomIntFromRange(radius * 2, height - (radius * 2));
     
         // Generates velocity between -(speed / 2) and +(speed / 2)
         // i.e. if speed was 4, the velocity would be somewhere betwen -2 and 2
-        let speed = randomIntFromRange(.5, 4);
+        let speed = randomIntFromRange(1, 2);
         let dx = (Math.random() - 0.5) * speed;
         let dy = (Math.random() - 0.5) * speed;
-        let cell = new Cell(index, speed, radius, x, y, dx, dy, age, lifeSpan);
+        let cell = new Cell(index, speed, radius, x, y, dx, dy, age, color, lifeSpan);
         allCells.push(cell);
     }    
 };
@@ -158,7 +161,8 @@ const animate = () => {
             if (distance < cell.radius + otherCell.radius) {
                 if (cell.alive && cell.radius < otherCell.radius) {
                     cell.alive = false;
-                    otherCell.radius+= 10;
+                    otherCell.radius+= (cell.radius / 2);
+                    otherCell.lifeSpan+= 200
                 }
             }
             // Checks for proximity
@@ -166,11 +170,11 @@ const animate = () => {
                 if (!cell.running && !cell.chasing) {
                     if (cell.radius < otherCell.radius) {
                         cell.running = true;
-                        cell.dx = -cell.dx;
+                        cell.dx = -cell.dx * cell.speed;
                         cell.dy = -cell.dy;
                     } else {
                         cell.chasing = true;
-                        cell.dx = -otherCell.dx;
+                        cell.dx = -otherCell.dx * cell.speed;
                         cell.dy = -otherCell.dy;
                     }
                 }
