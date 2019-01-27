@@ -41,7 +41,7 @@ let c = canvas.getContext('2d');
 // }
 
 
-function Cell(speed, radius, x, y, dx, dy) {
+function Cell(speed, radius, x, y, dx, dy, age, lifeSpan) {
     
     this.draw = () => {
         c.beginPath();
@@ -51,22 +51,27 @@ function Cell(speed, radius, x, y, dx, dy) {
     };
 
     this.update = () => {
-        // Bounce off walls
-        if (x + radius > width || x - radius < 0) {
-            let mutation = (Math.random() - 0.5) * speed;
-            dx = -dx;
-            dy = mutation;
-        }
+        // Check age
+        if (age < lifeSpan) {
+             // Bounce off walls
+            if (x + radius > width || x - radius < 0) {
+                let mutation = (Math.random() - 0.5) * speed;
+                dx = -dx;
+                dy = mutation;
+            }
 
-        // Bounce off ceiling and floor
-        if (y + radius > height || y - radius < 0) {
-            let mutation = (Math.random() - 0.5) * speed;
-            dy = -dy;
-            dx = mutation;
-        }
+            // Bounce off ceiling and floor
+            if (y + radius > height || y - radius < 0) {
+                let mutation = (Math.random() - 0.5) * speed;
+                dy = -dy;
+                dx = mutation;
+            }
 
-        x+= dx;
-        y+= dy;
+            x+= dx;
+            y+= dy;
+            age++;
+            this.draw();
+        }
         // console.log(`x: ${x}   y: ${y}`)
     }
 
@@ -75,6 +80,8 @@ function Cell(speed, radius, x, y, dx, dy) {
 let allCells = [];
 
 for (let i = 0; i < 100; i++) {
+    let age = 0;
+    let lifeSpan = Math.floor(Math.random() * 1000) + 200;;
     let midSize = 10;
     let sizeRange = 5;
     // Generates number between midSize - sizeRange and midSize + sizeRange;
@@ -84,10 +91,10 @@ for (let i = 0; i < 100; i++) {
 
     // Generates velocity between -(speed / 2) and +(speed / 2)
     // i.e. if speed was 4, the velocity would be somewhere betwen -2 and 2
-    let speed = 3;
+    let speed = .5;
     let dx = (Math.random() - 0.5) * speed;
     let dy = (Math.random() - 0.5) * speed;
-    let cell = new Cell(speed, radius, x, y, dx, dy);
+    let cell = new Cell(speed, radius, x, y, dx, dy, age, lifeSpan);
     allCells.push(cell);
 }
 
@@ -97,7 +104,6 @@ const animate = () => {
 
     allCells.forEach(cell => {
         cell.update();
-        cell.draw(); 
     });
 }
 
