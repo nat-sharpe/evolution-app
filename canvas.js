@@ -66,7 +66,7 @@ const getDistance = (x1, y1, x2, y2) => {
 
 
 // Class declarations
-function Cell(index, speed, radius, x, y, dx, dy, age, color, lifeSpan) {
+function Cell(index, speed, radius, x, y, dx, dy, age, stomach, color, lifeSpan, maxRadius) {
     this.index = index;
     this.speed = speed;
     this.radius = radius;
@@ -79,8 +79,10 @@ function Cell(index, speed, radius, x, y, dx, dy, age, color, lifeSpan) {
     this.lifeSpan = lifeSpan;
     this.hunting = false;
     this.running = false;
-    this.meals;
+    this.meals = 0;
+    this.stomach = stomach;
     this.alive = true;
+    this.maxRadius = maxRadius;
 
     this.draw = () => {
         c.beginPath();
@@ -88,32 +90,6 @@ function Cell(index, speed, radius, x, y, dx, dy, age, color, lifeSpan) {
         c.fillStyle = this.color;
         c.fill();
     };
-
-    // const otherCells = allCells.filter(otherCell => otherCell.index != cell.index);
-    
-        // Checks for collision
-        // if (distance < cell.radius + otherCell.radius) {
-        //     if (cell.alive && cell.radius < otherCell.radius) {
-        //         cell.alive = false;
-        //         otherCell.radius+= (cell.radius / 2);
-        //         otherCell.lifeSpan+= 200
-        //     }
-        // }
-        // // Checks for proximity
-        // if (distance < cell.radius + otherCell.radius + 10) {
-        //     if (!cell.running && !cell.chasing) {
-        //         if (cell.radius < otherCell.radius) {
-        //             cell.running = true;
-        //             cell.dx = -cell.dx * cell.speed;
-        //             cell.dy = -cell.dy;
-        //         } else {
-        //             cell.chasing = true;
-        //             cell.dx = -otherCell.dx * cell.speed;
-        //             cell.dy = -otherCell.dy;
-        //         }
-        //     }
-        // }
-    // });
 
     this.hunt = () => {
 
@@ -128,6 +104,10 @@ function Cell(index, speed, radius, x, y, dx, dy, age, color, lifeSpan) {
             } else {
                 this.age = 0;
             }
+        }
+
+        if (this.radius === this.maxRadius) {
+            this.alive = false;
         }
         // Check age
         if (this.alive) {
@@ -170,8 +150,10 @@ function Cell(index, speed, radius, x, y, dx, dy, age, color, lifeSpan) {
 };
 
 // Implementation
-const randomColors = ['rgb(100, 140, 100)', 'rgb(140, 100, 100)', 'rgb(100, 100, 140)' ]
+const randomColors = ['rgb(70, 100, 70)', 'rgb(100, 120, 100)', 'rgb(120, 155, 120)' ]
 const numCells = 200;
+const smallestCell = 5;
+const biggestCell = 7; 
 let allCells = [];
 
 
@@ -179,18 +161,20 @@ const init = () => {
     for (let i = 0; i < numCells; i++) {
         let index = i;
         // Generates radius and position
-        let radius = randomIntFromRange(5, 7);
+        let radius = randomIntFromRange(smallestCell, biggestCell)
         let x = randomIntFromRange(radius, width - (radius));
         let y = randomIntFromRange(radius, height - (radius));
         // Generates age and lifespan
         let age = 0;
-        let lifeSpan = randomIntFromRange(800, 2000);
+        let lifeSpan = randomIntFromRange(1500, 2000);
         let color = randomColors[randomIntFromRange(0, randomColors.length)];
+        let stomach = randomIntFromRange(0, 2);
         // Generates velocity between -(speed / 2) and +(speed / 2)
         // i.e. if speed was 4, the velocity would be somewhere betwen -2 and 2
-        let speed = randomIntFromRange(.1, 3);
+        let speed = randomIntFromRange(.1, 2);
         let dx = (Math.random() - 0.5) * speed;
         let dy = (Math.random() - 0.5) * speed;
+        let maxRadius = radius + stomach;
 
         if (i !== 0) {
             for (let j = 0; j < allCells.length; j++) {
@@ -204,7 +188,7 @@ const init = () => {
         };
 
         let cell = new Cell(
-            index, speed, radius, x, y, dx, dy, age, color, lifeSpan
+            index, speed, radius, x, y, dx, dy, age, stomach, color, lifeSpan, maxRadius
         );
         allCells.push(cell);
     }    
@@ -215,13 +199,14 @@ const divideCell = parent => {
     let index = allCells.length-1;
     // Generates age and lifespan
     let age = 0;
-    let lifeSpan = parent.lifeSpan;
+    let lifeSpan = parent.lifeSpan + 100;
     let color = parent.color;
     // Generates radius and position
     let radius = parent.radius;
     let x = parent.x;
     let y = parent.y;
-
+    let stomach = parent.stomach + 1;
+    let maxRadius = parent.maxRadius + 1;
     // Generates velocity between -(speed / 2) and +(speed / 2)
     // i.e. if speed was 4, the velocity would be somewhere betwen -2 and 2
     let speed = parent.speed;
@@ -229,7 +214,7 @@ const divideCell = parent => {
     let dy = -parent.dx;
 
     let babyCell = new Cell(
-        index, speed, radius, x, y, dx, dy, age, color, lifeSpan
+        index, speed, radius, x, y, dx, dy, age, stomach, color, lifeSpan, maxRadius
     );
     allCells.push(babyCell);
 } 
@@ -240,35 +225,15 @@ const animate = () => {
     c.clearRect(0, 0, width, height);
 
     allCells.forEach(cell=> {
-        // const otherCells = allCells.filter(otherCell => otherCell.index != cell.index);
-        // otherCells.forEach(otherCell => {
-        //     let distance = getDistance(cell.x, cell.y, otherCell.x, otherCell.y);
-        //     // Checks for collision
-        //     if (distance < cell.radius + otherCell.radius) {
-        //         if (cell.alive && cell.radius < otherCell.radius) {
-        //             cell.alive = false;
-        //             otherCell.radius+= (cell.radius / 2);
-        //             otherCell.lifeSpan+= 200
-        //         }
-        //     }
-        //     // Checks for proximity
-        //     if (distance < cell.radius + otherCell.radius + 10) {
-        //         if (!cell.running && !cell.chasing) {
-        //             if (cell.radius < otherCell.radius) {
-        //                 cell.running = true;
-        //                 cell.dx = -cell.dx * cell.speed;
-        //                 cell.dy = -cell.dy;
-        //             } else {
-        //                 cell.chasing = true;
-        //                 cell.dx = -otherCell.dx * cell.speed;
-        //                 cell.dy = -otherCell.dy;
-        //             }
-        //         }
-        //     }
-        // });
-        if (cell.age === (cell.lifeSpan / 2)) {
+        if (cell.stomach === 0 && cell.age === (cell.lifeSpan / 3)) {
+            divideCell(cell);
+            cell.age = 0;
+        }
+        if (cell.stomach > 0 && cell.stomach === cell.meals) {
+            cell.meals = 0;
             divideCell(cell);
         }
+        
         cell.update(allCells);
     });
 }
