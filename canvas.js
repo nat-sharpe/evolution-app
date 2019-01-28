@@ -96,26 +96,26 @@ function Cell(index, speed, radius, x, y, dx, dy, age, color, lifeSpan) {
         }
         // Check age
         if (this.alive) {
-             // Bounce off walls
-            if (this.x + this.radius > width || this.x - this.radius < 0) {
-                this.dx = -this.dx;
-                this.dy = mutation;
-                this.running = false;
-                this.chasing = false;
-            }
+            //  // Bounce off walls
+            // if (this.x + this.radius > width || this.x - this.radius < 0) {
+            //     this.dx = -this.dx;
+            //     this.dy = mutation;
+            //     this.running = false;
+            //     this.chasing = false;
+            // }
         
 
-            // Bounce off ceiling and floor
-            if (this.y + this.radius > height || this.y - this.radius < 0) {
-                this.dy = -this.dy;
-                this.dx = mutation;
-                this.running = false;
-                this.chasing = false;
-            }
+            // // Bounce off ceiling and floor
+            // if (this.y + this.radius > height || this.y - this.radius < 0) {
+            //     this.dy = -this.dy;
+            //     this.dx = mutation;
+            //     this.running = false;
+            //     this.chasing = false;
+            // }
 
-            this.x+= this.dx;
-            this.y+= this.dy;
-            this.age++;
+            // this.x+= this.dx;
+            // this.y+= this.dy;
+            // this.age++;
             this.draw();
         }
     }
@@ -123,8 +123,20 @@ function Cell(index, speed, radius, x, y, dx, dy, age, color, lifeSpan) {
 };
 
 // Implementation
-let numCells = 200;
+let numCells = 4;
 let allCells = [];
+
+const checkOverlap = (x, y, radius) => {
+    let overlap = false;
+    for (let i = 0; i < allCells.length; i++) {
+        let cell = allCells[i];
+        if (getDistance(x, y, cell.x, cell.y) - (radius + cell.radius) < 0) {
+            overlap = true;
+        }
+    }
+    return overlap;
+}
+
 const init = () => {
     for (let i = 0; i < numCells; i++) {
         let index = i;
@@ -133,17 +145,28 @@ const init = () => {
         let lifeSpan = randomIntFromRange(800, 8000);
         let color = randomColors[randomIntFromRange(0, randomColors.length)];
         // Generates radius and position
-        let radius = randomIntFromRange(3, 5);
-        let x = randomIntFromRange(radius * 2, width - (radius * 2));
-        let y = randomIntFromRange(radius * 2, height - (radius * 2));
+        let radius = randomIntFromRange(100, 100);
+        let x = randomIntFromRange(radius, width - (radius));
+        let y = randomIntFromRange(radius, height - (radius));
     
         // Generates velocity between -(speed / 2) and +(speed / 2)
         // i.e. if speed was 4, the velocity would be somewhere betwen -2 and 2
         let speed = randomIntFromRange(1, 2);
         let dx = (Math.random() - 0.5) * speed;
         let dy = (Math.random() - 0.5) * speed;
+
+        if (i !== 0) {
+            let overlap = checkOverlap(x, y, radius);
+            while (overlap) {
+                x = randomIntFromRange(radius, width - (radius));
+                y = randomIntFromRange(radius, height - (radius));
+                overlap = checkOverlap(x, y, radius);
+            }
+        };
+
         let cell = new Cell(index, speed, radius, x, y, dx, dy, age, color, lifeSpan);
         allCells.push(cell);
+        console.log(allCells)
     }    
 };
 
@@ -152,34 +175,33 @@ const animate = () => {
     requestAnimationFrame(animate);
     c.clearRect(0, 0, width, height);
 
-
     allCells.forEach(cell=> {
-        const otherCells = allCells.filter(otherCell => otherCell.index != cell.index);
-        otherCells.forEach(otherCell => {
-            let distance = getDistance(cell.x, cell.y, otherCell.x, otherCell.y);
-            // Checks for collision
-            if (distance < cell.radius + otherCell.radius) {
-                if (cell.alive && cell.radius < otherCell.radius) {
-                    cell.alive = false;
-                    otherCell.radius+= (cell.radius / 2);
-                    otherCell.lifeSpan+= 200
-                }
-            }
-            // Checks for proximity
-            if (distance < cell.radius + otherCell.radius + 10) {
-                if (!cell.running && !cell.chasing) {
-                    if (cell.radius < otherCell.radius) {
-                        cell.running = true;
-                        cell.dx = -cell.dx * cell.speed;
-                        cell.dy = -cell.dy;
-                    } else {
-                        cell.chasing = true;
-                        cell.dx = -otherCell.dx * cell.speed;
-                        cell.dy = -otherCell.dy;
-                    }
-                }
-            }
-        });
+        // const otherCells = allCells.filter(otherCell => otherCell.index != cell.index);
+        // otherCells.forEach(otherCell => {
+        //     let distance = getDistance(cell.x, cell.y, otherCell.x, otherCell.y);
+        //     // Checks for collision
+        //     if (distance < cell.radius + otherCell.radius) {
+        //         if (cell.alive && cell.radius < otherCell.radius) {
+        //             cell.alive = false;
+        //             otherCell.radius+= (cell.radius / 2);
+        //             otherCell.lifeSpan+= 200
+        //         }
+        //     }
+        //     // Checks for proximity
+        //     if (distance < cell.radius + otherCell.radius + 10) {
+        //         if (!cell.running && !cell.chasing) {
+        //             if (cell.radius < otherCell.radius) {
+        //                 cell.running = true;
+        //                 cell.dx = -cell.dx * cell.speed;
+        //                 cell.dy = -cell.dy;
+        //             } else {
+        //                 cell.chasing = true;
+        //                 cell.dx = -otherCell.dx * cell.speed;
+        //                 cell.dy = -otherCell.dy;
+        //             }
+        //         }
+        //     }
+        // });
 
         cell.update();
     });
